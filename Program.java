@@ -1,6 +1,8 @@
 package yahtzee;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -19,6 +21,7 @@ class Yatzee
 	Dobbelsteen[] dobbelstenen = new Dobbelsteen[5];
 	ScoreFormulier scoreFormulier = new ScoreFormulier();
 	Random random = new Random();
+	int poging = 0;
 	
 	Yatzee()
 	{
@@ -32,24 +35,32 @@ class Yatzee
 		boolean doorspelen = true;
 		while(doorspelen)
 		{
+			poging++;
 			String input = toonMenu();
 			if(input.equals("a"))
 			{
-				for(Dobbelsteen steen: dobbelstenen)
+				if(poging > 3)
 				{
-					if(!steen.vastgezet)
-					{
-						gooiDobbelsteen(steen);
-						System.out.println("Dobbelsteen " + steen.dobbelsteennummer + " heeft het volgende aantal ogen gegooid: " +steen.huidigCijfer);
-					}
-					else
-					{
-						System.out.println("Dobbelsteen " + steen.dobbelsteennummer + " die u heeft vastgezet heeft het volgende aantal ogen: " +steen.huidigCijfer);
-					}
+					System.out.println("U heeft drie keer gegooid, u moet een score vastzetten, typ s");
 				}
-				System.out.println("Wanneer u nog een keer wilt gooien typ o");
-				System.out.println("Wanneer u een dobbelsteen wilt vastzetten typ v");
-				System.out.println("wanneer u met de huidige dobbelstenen een score wilt vastzetten typ s");
+				else
+				{
+					for(Dobbelsteen steen: dobbelstenen)
+					{
+						if(!steen.vastgezet)
+						{
+							gooiDobbelsteen(steen);
+							System.out.println("Dobbelsteen " + steen.dobbelsteennummer + " heeft het volgende aantal ogen gegooid: " +steen.huidigCijfer);
+						}
+						else
+						{
+							System.out.println("Dobbelsteen " + steen.dobbelsteennummer + " die u heeft vastgezet heeft het volgende aantal ogen: " +steen.huidigCijfer);
+						}
+					}
+					System.out.println("Wanneer u nog een keer wilt gooien typ o");
+					System.out.println("Wanneer u een dobbelsteen wilt vastzetten typ v");
+					System.out.println("wanneer u met de huidige dobbelstenen een score wilt vastzetten typ s");
+				}
 			}
 			else if(input.equals("q"))
 			{
@@ -84,13 +95,13 @@ class Yatzee
 				System.out.println("driedezelfde");
 				System.out.println("carré (vier dezelfde dobbelstenen + een andere)");
 				System.out.println("fullhouse (drie dezelfde en twee dezelfde)");
-				System.out.println("kleinestraat (reeks van 4 opeenvolgende getallen");
-				System.out.println("grotestraat (reeks van 5 opeenvolgende getallen");
-				System.out.println("yatzee (allemaal verschillende getallen");
+				System.out.println("kleinestraat (reeks van 4 opeenvolgende getallen)");
+				System.out.println("grotestraat (reeks van 5 opeenvolgende getallen)");
+				System.out.println("yatzee (allemaal verschillende getallen)");
 			}
 			else if(input.startsWith("y"))
 			{
-				checkWorp(dobbelstenen, input);
+				boolean scorevastgezet = checkWorp(dobbelstenen, input);
 			}
 		}
 		System.out.println("Bedankt voor het spelen");
@@ -106,11 +117,12 @@ class Yatzee
 	{
 		steen.huidigCijfer = random.nextInt(6) + 1;
 	}
-	void checkWorp(Dobbelsteen[] stenen, String input)
+	boolean checkWorp(Dobbelsteen[] stenen, String input)
 	{
-		System.out.println(input);
+		//System.out.println(input);
 		String yat = input.substring(2);
-		System.out.println(yat);
+		//System.out.println(yat);
+		boolean scorevastgezet = false;
 		if(yat.equals("yatzee"))
 		{
 			boolean hetzelfde = true;
@@ -124,17 +136,24 @@ class Yatzee
 			}
 			if(hetzelfde)
 			{
-				scoreFormulier.yatzee = 50;
+				if(scoreFormulier.yatzee == -1)
+				{
+					scoreFormulier.yatzee = 50;
+					scorevastgezet = true;
+				}
+				else
+				{
+					System.out.println("De score voor yatzee is al ingevuld, kies een andere optie");
+				}
 			}
 			else
 			{
 				System.out.println("Sorry, u heeft geen yatzee gegooid");
 			}
 		}
-		else if(yat.equals("grotestraat"))
+		else if(yat.equals("grotestraat")) 	// vijf opeenvolgende getallen
 		{
-			boolean hetzelfde = false;
-			int eenofzesgelijk = 0;
+			int hetzelfde = 0;
 			for(int x = 0; x < stenen.length; x++)
 			{
 				for(int i= 0; i < stenen.length; i++)
@@ -143,31 +162,157 @@ class Yatzee
 					{
 						if(stenen[x].huidigCijfer == stenen[i].huidigCijfer)
 						{
-							if(stenen[x].huidigCijfer == 6 || stenen[x].huidigCijfer == 1)
-							{
-								eenofzesgelijk++;
-							}
-							else
-							{
-								hetzelfde = true;
-							}
+								hetzelfde++;
 						}
-						System.out.println(stenen[x].dobbelsteennummer + ": " + stenen[x].huidigCijfer + " vs " + stenen[i].dobbelsteennummer + ": " + stenen[i].huidigCijfer);
+						//System.out.println(stenen[x].dobbelsteennummer + ": " + stenen[x].huidigCijfer + " vs " + stenen[i].dobbelsteennummer + ": " + stenen[i].huidigCijfer);
 					}
 				}
 			}
-			if(!hetzelfde && eenofzesgelijk <= 1)
+			if(hetzelfde == 0)
 			{
-				scoreFormulier.grotestraat = 40;
+				if(scoreFormulier.grotestraat == -1)
+				{
+					scoreFormulier.grotestraat = 40;
+					scorevastgezet = true;
+				}
+				else
+				{
+					System.out.println("De score voor grotestraat is al ingevuld, kies een andere optie");
+				}
 			}
 			else
 			{
 				System.out.println("Sorry, u heeft geen grote straat gegooid");
 			}
 		}
-		else if(yat.equals("kleinestraat"))
+		else if(yat.equals("kleinestraat")) // een ononderbroken reeks van 4 getallen
 		{
-			
+			Arrays.sort(stenen, new Comparator<Dobbelsteen>() //sorteren van cijfers in array
+			{
+				@Override
+				public int compare(Dobbelsteen o1, Dobbelsteen o2) {
+					// TODO Auto-generated method stub
+					if(o1.huidigCijfer > o2.huidigCijfer)
+					{
+						return -1;
+					}
+					else if(o1.huidigCijfer == o2.huidigCijfer)
+					{
+						return 0;
+					}
+					else
+					{
+						return 1;
+					}
+				}
+			});
+			int tellerk = 5;
+			int hetzelfde = 0;
+			boolean kstraat = true;
+			if(stenen[0].huidigCijfer == 6)
+			{
+				for(int t = 1; t < stenen.length-1; t++)
+				{
+					if(stenen[t].huidigCijfer == tellerk)
+					{
+						tellerk--;
+					}
+					else if(stenen[t].huidigCijfer == stenen[t-1].huidigCijfer)
+					{
+						hetzelfde++;
+					}
+					else
+					{
+						kstraat = false;
+					}
+				}
+				if(kstraat && hetzelfde <= 1)
+				{
+					if(scoreFormulier.kleinestraat == -1)
+					{
+						scoreFormulier.kleinestraat = 30;
+						scorevastgezet = true;
+					}
+					else
+					{
+						System.out.println("De score voor kleinestraat is al ingevuld, kies een andere optie");
+					}
+				}
+				else
+				{
+					System.out.println("Sorry u heeft geen kleinestraat gegooid");
+				}
+			}
+			else if(stenen[0].huidigCijfer == 5)
+			{
+				tellerk = 4;				
+				for(int t = 1; t < stenen.length-1; t++)
+				{
+					if(stenen[t].huidigCijfer == tellerk)
+					{
+						tellerk--;
+					}
+					else if(stenen[t].huidigCijfer == stenen[t-1].huidigCijfer)
+					{
+						hetzelfde++;
+					}
+					else
+					{
+						kstraat = false;
+					}
+				}
+				if(kstraat && hetzelfde <= 1)
+				{
+					if(scoreFormulier.kleinestraat == -1)
+					{
+						scoreFormulier.kleinestraat = 30;
+						scorevastgezet = true;
+					}
+					else
+					{
+						System.out.println("De score voor kleinestraat is al ingevuld, kies een andere optie");
+					}
+				}
+				else
+				{
+					System.out.println("Sorry u heeft geen kleinestraat gegooid");
+				}
+			}
+			else if(stenen[0].huidigCijfer == 4)
+			{
+				tellerk = 3;				
+				for(int t = 1; t < stenen.length-1; t++)
+				{
+					if(stenen[t].huidigCijfer == tellerk)
+					{
+						tellerk--;
+					}
+					else if(stenen[t].huidigCijfer == stenen[t-1].huidigCijfer)
+					{
+						hetzelfde++;
+					}
+					else
+					{
+						kstraat = false;
+					}
+				}
+				if(kstraat && hetzelfde <= 1)
+				{
+					if(scoreFormulier.kleinestraat == -1)
+					{
+						scoreFormulier.kleinestraat = 30;
+						scorevastgezet = true;
+					}
+					else
+					{
+						System.out.println("De score voor kleinestraat is al ingevuld, kies een andere optie");
+					}
+				}
+				else
+				{
+					System.out.println("Sorry u heeft geen kleinestraat gegooid");
+				}
+			}
 		}
 		else if(yat.equals("fullhouse"))
 		{
@@ -201,7 +346,15 @@ class Yatzee
 			}
 			if(tweedezelfde && driedezelfde)
 			{
-				scoreFormulier.fullhouse = 25;
+				if(scoreFormulier.fullhouse == -1)
+				{
+					scoreFormulier.fullhouse = 25;
+					scorevastgezet = true;
+				}
+				else
+				{
+					System.out.println("De score voor fullhouse is al ingevuld, kies een andere optie");
+				}
 			}
 			else
 			{
@@ -237,7 +390,15 @@ class Yatzee
 			}
 			if(klopt)
 			{
-				scoreFormulier.carre = tscore;
+				if(scoreFormulier.carre == -1)
+				{
+					scoreFormulier.carre = tscore;
+					scorevastgezet = true;
+				}
+				else
+				{
+					System.out.println("De score voor carré is al ingevuld, kies een andere optie");
+				}
 			}
 			else
 			{
@@ -273,7 +434,15 @@ class Yatzee
 			}
 			if(klopt)
 			{
-				scoreFormulier.driedezelfde = tscore;
+				if(scoreFormulier.driedezelfde == -1)
+				{
+					scoreFormulier.driedezelfde = tscore;
+					scorevastgezet = true;
+				}
+				else
+				{
+					System.out.println("De score voor driedezelfde is al ingevuld, kies een andere optie");
+				}
 			}
 			else
 			{
@@ -290,7 +459,15 @@ class Yatzee
 					scoreeen++;
 				}
 			}
-			scoreFormulier.een = scoreeen;
+			if(scoreFormulier.een == -1)
+			{
+				scoreFormulier.een = scoreeen;	
+				scorevastgezet = true;
+			}
+			else
+			{
+				System.out.println("De score voor een oog is al ingevuld, kies een andere optie");
+			}
 		}
 		else if(yat.equals("twee"))
 		{
@@ -302,7 +479,15 @@ class Yatzee
 					scoretwee = scoretwee + 2;
 				}
 			}
-			scoreFormulier.twee = scoretwee;
+			if(scoreFormulier.twee == -1)
+			{
+				scoreFormulier.twee = scoretwee;
+				scorevastgezet = true;
+			}
+			else
+			{
+				System.out.println("De score voor twee ogen is al ingevuld, kies een andere optie");
+			}
 		}
 		else if(yat.equals("drie"))
 		{
@@ -314,7 +499,15 @@ class Yatzee
 					scoredrie = scoredrie + 3;
 				}
 			}
-			scoreFormulier.drie = scoredrie;
+			if(scoreFormulier.drie == -1)
+			{
+				scoreFormulier.drie = scoredrie;
+				scorevastgezet = true;
+			}
+			else
+			{
+				System.out.println("De score voor drie ogen is al ingevuld, kies een andere optie");
+			}
 		}
 		else if(yat.equals("vier"))
 		{
@@ -326,7 +519,15 @@ class Yatzee
 					scorevier = scorevier + 4;
 				}
 			}
-			scoreFormulier.vier = scorevier;
+			if(scoreFormulier.vier == -1)
+			{
+				scoreFormulier.vier = scorevier;
+				scorevastgezet = true;
+			}
+			else
+			{
+				System.out.println("De score voor vier ogen is al ingevuld, kies een andere optie");
+			}
 		}
 		else if(yat.equals("vijf"))
 		{
@@ -338,7 +539,15 @@ class Yatzee
 					scorevijf = scorevijf + 5;
 				}
 			}
-			scoreFormulier.vijf = scorevijf;
+			if(scoreFormulier.vijf == -1)
+			{
+				scoreFormulier.vijf = scorevijf;
+				scorevastgezet = true;
+			}
+			else
+			{
+				System.out.println("De score voor vijf ogen is al ingevuld, kies een andere optie");
+			}
 		}
 		else if(yat.equals("zes"))
 		{
@@ -350,7 +559,15 @@ class Yatzee
 					scorezes = scorezes + 6;
 				}
 			}
-			scoreFormulier.zes = scorezes;
+			if(scoreFormulier.zes == -1)
+			{
+				scoreFormulier.zes = scorezes;
+				scorevastgezet = true;
+			}
+			else
+			{
+				System.out.println("De score voor zes ogen is al ingevuld, kies een andere optie");
+			}
 		}
 		else
 		{
@@ -360,7 +577,7 @@ class Yatzee
 		{
 			System.out.print(steen.huidigCijfer);
 		}
-		System.out.println("nieuwe worp");
+		return scorevastgezet;
 	}
 
 }
@@ -395,16 +612,16 @@ class Dobbelsteen
 
 class ScoreFormulier
 {
-	int een;
-	int twee;
-	int drie;
-	int vier;
-	int vijf;
-	int zes;
-	int driedezelfde;
-	int carre;
-	int fullhouse;
-	int kleinestraat;
-	int grotestraat;
-	int yatzee;
+	int een = -1;
+	int twee = -1;
+	int drie = -1;
+	int vier = -1;
+	int vijf = -1;
+	int zes = -1;
+	int driedezelfde = -1;
+	int carre = -1;
+	int fullhouse = -1;
+	int kleinestraat = -1;
+	int grotestraat = -1;
+	int yatzee = -1;
 }
